@@ -121,7 +121,7 @@
 
         function scannow() {
             var scanbtn = document.querySelector('#urlInput').value;
-            fetch('https://raw.githubusercontent.com/coffinsp/payloads/main/xss.txt')
+            fetch('https://raw.githubusercontent.com/snowden-pc/XSS-Payloads/main/xss.txt')   // CustomList: https://raw.githubusercontent.com/coffinsp/payloads/main/xss.txt
                 .then((response) => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok ' + response.statusText);
