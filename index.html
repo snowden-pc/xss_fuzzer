@@ -96,59 +96,78 @@
         <div id="urlListlist"></div>
     </div>
     <script>
-        const displayContainer = document.querySelector('#urlListlist');
-        let urls = [];
+        const dorkContainer = document.querySelector('#dorkList');
+        let dorkQueries = [];
         let currentIndex = 0;
 
-        function openNextUrl() {
-            if (currentIndex < urls.length) {
-                const newTab = window.open(urls[currentIndex], '_blank');
-                currentIndex++;
+        async function openNextDork() {
+            if (currentIndex < dorkQueries.length) {
+                const url = dorkQueries[currentIndex];
+                const newTab = window.open(url, '_blank');
                 if (newTab) {
-                    const checkClosedInterval = setInterval(() => {
-                        if (newTab.closed) {
-                            clearInterval(checkClosedInterval);
-                            openNextUrl();
-                        }
-                    }, 500);
+                    await waitForTabClose(newTab);
+                    currentIndex++;
+                    openNextDork(); // Proceed to the next dork
                 } else {
                     console.log('Failed to open tab.');
                 }
             } else {
-                console.log('All URLs have been opened.');
+                console.log('All dorks have been opened.');
             }
         }
 
-        function scannow() {
-            var scanbtn = document.querySelector('#urlInput').value;
-            fetch('https://raw.githubusercontent.com/snowden-pc/XSS-Payloads/main/xss.txt')
-                .then((response) => {
+        function waitForTabClose(tab) {
+            return new Promise((resolve) => {
+                const checkClosed = () => {
+                    if (tab.closed) {
+                        resolve(); // Resolve the promise when the tab is closed
+                    } else {
+                        requestAnimationFrame(checkClosed); // Check again on the next animation frame
+                    }
+                };
+                checkClosed();
+            });
+        }
+
+        function generateDorks() {
+            const baseUrl = 'https://www.google.com/search?q=';
+            const target = document.querySelector('#targetInput').value;
+            const dorkUrl = 'https://raw.githubusercontent.com/snowden-pc/XSS-Payloads/main/xss.txt';
+
+            fetch(dorkUrl)
+                .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok ' + response.statusText);
                     }
                     return response.text();
                 })
-                .then((data) => {
+                .then(data => {
                     const lines = data.split('\n');
-                    displayContainer.innerHTML = '';
-                    urls = [];
-                    currentIndex = 0;
+                    dorkQueries = [];
+                    dorkContainer.innerHTML = '';
+
                     lines.forEach(line => {
-                        const result = `${scanbtn}${line}`;
-                        const listItem = document.createElement('p');
-                        const link = document.createElement('a');
-                        link.href = result;
-                        link.target = '_blank';
-                        link.innerText = result;
-                        link.style.color = '#00ff00'; // Set link color to green
-                        listItem.appendChild(link);
-                        displayContainer.appendChild(listItem);
-                        urls.push(result);
+                        const trimmedLine = line.trim();
+                        if (trimmedLine) {
+                            const query = `site:*.${target} ${encodeURIComponent(trimmedLine)}`;
+                            const dorkQueryUrl = `${baseUrl}${query}`;
+                            dorkQueries.push(dorkQueryUrl);
+
+                            const listItem = document.createElement('p');
+                            const link = document.createElement('a');
+                            link.href = dorkQueryUrl;
+                            link.target = '_blank';
+                            link.innerText = dorkQueryUrl;
+                            link.style.color = '#00ff00'; // Set link color to green
+                            listItem.appendChild(link);
+                            dorkContainer.appendChild(listItem);
+                        }
                     });
-                    openNextUrl(); // Start opening URLs
+                    currentIndex = 0;
+                    openNextDork(); // Start opening dorks
                 })
-                .catch((error) => {
-                    displayContainer.innerText = 'There was an error fetching the data: ' + error.message;
+                .catch(error => {
+                    dorkContainer.innerText = 'There was an error fetching the data: ' + error.message;
                 });
         }
     </script>
