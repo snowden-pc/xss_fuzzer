@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XSS Fuzzer by 0xlipon</title>
+    <title>XSS Fuzzer</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -14,13 +13,10 @@
             background-color: #000;
             color: #00ff00;
         }
-
-        h1,
-        h2 {
+        h1, h2 {
             color: #00ff00;
             text-align: center;
         }
-
         .header {
             display: flex;
             justify-content: space-between;
@@ -29,170 +25,131 @@
             margin-bottom: 20px;
             background-color: #333;
         }
-
         .header .left a {
             color: #00ff00;
             font-size: 18px;
             text-decoration: none;
         }
-
         .header .right {
             color: #00ff00;
             font-size: 18px;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             background-color: #000;
         }
-
-        th,
-        td {
+        th, td {
             border: 1px solid #00ff00;
             padding: 10px;
             text-align: left;
         }
-
         th {
             background-color: #004400;
             color: #00ff00;
         }
-
         tr:nth-child(even) {
             background-color: #1a1a1a;
         }
-
         tr:hover {
             background-color: #333;
             transition: background-color 0.3s ease;
         }
-
         a {
-            color: #00ff00;
+            color: #00ff00; /* Change link color to green */
             text-decoration: none;
         }
-
         a:hover {
             text-decoration: underline;
         }
-
         .payload {
             color: #e67e22;
             font-weight: bold;
         }
-
         .request-url {
             color: #00ff00;
             word-break: break-all;
         }
-
         .container {
             margin-top: 10px;
         }
-
         .list-group-item {
             background-color: #333;
             color: #fff;
         }
-
         #urlInput {
             width: 1000px;
         }
     </style>
 </head>
-
 <body>
     <div class="container p-0">
         <h1 class="text-center">XSS Fuzzer</h1>
-        <h6 align="center">Created by <a href="https://github.com/0xlipon" target="_blank">@0xlipon</a></h6>
         <form id="xssForm" class="form-inline">
             <div class="form-group">
-                <input type="url" class="form-control" id="urlInput"
-                    placeholder="http://testphp.vulnweb.com/search.php?test=" required>
-                <input type="text" class="form-control ml-2" id="targetInput" placeholder="Target Domain" required> <!-- Added target input -->
+                <input type="url" class="form-control" id="urlInput" placeholder="http://testphp.vulnweb.com/search.php?test=" required>
             </div>
-            <button type="button" class="btn btn-primary ml-2" id="scanButton" onclick="generateDorks()">Generate Dorks</button>
+            <button type="button" class="btn btn-primary" id="scanButton" onclick="scannow()">Scan</button>
         </form>
-        <div id="dorkList"></div> <!-- Added dorkList div -->
+        <div id="urlListlist"></div>
     </div>
     <script>
-        const dorkContainer = document.querySelector('#dorkList');
-        let dorkQueries = [];
+        const displayContainer = document.querySelector('#urlListlist');
+        let urls = [];
         let currentIndex = 0;
 
-        async function openNextDork() {
-            if (currentIndex < dorkQueries.length) {
-                const url = dorkQueries[currentIndex];
-                const newTab = window.open(url, '_blank');
+        function openNextUrl() {
+            if (currentIndex < urls.length) {
+                const newTab = window.open(urls[currentIndex], '_blank');
+                currentIndex++;
                 if (newTab) {
-                    await waitForTabClose(newTab);
-                    currentIndex++;
-                    openNextDork(); // Proceed to the next dork
+                    const checkClosedInterval = setInterval(() => {
+                        if (newTab.closed) {
+                            clearInterval(checkClosedInterval);
+                            openNextUrl();
+                        }
+                    }, 500);
                 } else {
                     console.log('Failed to open tab.');
                 }
             } else {
-                console.log('All dorks have been opened.');
+                console.log('All URLs have been opened.');
             }
         }
 
-        function waitForTabClose(tab) {
-            return new Promise((resolve) => {
-                const checkClosed = () => {
-                    if (tab.closed) {
-                        resolve(); // Resolve the promise when the tab is closed
-                    } else {
-                        requestAnimationFrame(checkClosed); // Check again on the next animation frame
-                    }
-                };
-                checkClosed();
-            });
-        }
-
-        function generateDorks() {
-            const baseUrl = 'https://www.google.com/search?q=';
-            const target = document.querySelector('#targetInput').value; // Corrected the querySelector ID
-            const dorkUrl = 'https://raw.githubusercontent.com/snowden-pc/XSS-Payloads/main/xss.txt';
-
-            fetch(dorkUrl)
-                .then(response => {
+        function scannow() {
+            var scanbtn = document.querySelector('#urlInput').value;
+            fetch('https://raw.githubusercontent.com/coffinsp/payloads/main/xss.txt')
+                .then((response) => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok ' + response.statusText);
                     }
                     return response.text();
                 })
-                .then(data => {
+                .then((data) => {
                     const lines = data.split('\n');
-                    dorkQueries = [];
-                    dorkContainer.innerHTML = '';
-
-                    lines.forEach(line => {
-                        const trimmedLine = line.trim();
-                        if (trimmedLine) {
-                            const query = `site:*.${target} ${encodeURIComponent(trimmedLine)}`;
-                            const dorkQueryUrl = `${baseUrl}${query}`;
-                            dorkQueries.push(dorkQueryUrl);
-
-                            const listItem = document.createElement('p');
-                            const link = document.createElement('a');
-                            link.href = dorkQueryUrl;
-                            link.target = '_blank';
-                            link.innerText = dorkQueryUrl;
-                            link.style.color = '#00ff00'; // Set link color to green
-                            listItem.appendChild(link);
-                            dorkContainer.appendChild(listItem);
-                        }
-                    });
+                    displayContainer.innerHTML = '';
+                    urls = [];
                     currentIndex = 0;
-                    openNextDork(); // Start opening dorks
+                    lines.forEach(line => {
+                        const result = `${scanbtn}${line}`;
+                        const listItem = document.createElement('p');
+                        const link = document.createElement('a');
+                        link.href = result;
+                        link.target = '_blank';
+                        link.innerText = result;
+                        link.style.color = '#00ff00'; // Set link color to green
+                        listItem.appendChild(link);
+                        displayContainer.appendChild(listItem);
+                        urls.push(result);
+                    });
+                    openNextUrl(); // Start opening URLs
                 })
-                .catch(error => {
-                    dorkContainer.innerText = 'There was an error fetching the data: ' + error.message;
+                .catch((error) => {
+                    displayContainer.innerText = 'There was an error fetching the data: ' + error.message;
                 });
         }
     </script>
 </body>
-
 </html>
