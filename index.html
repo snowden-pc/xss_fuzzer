@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,10 +14,13 @@
             background-color: #000;
             color: #00ff00;
         }
-        h1, h2 {
+
+        h1,
+        h2 {
             color: #00ff00;
             text-align: center;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -25,75 +29,93 @@
             margin-bottom: 20px;
             background-color: #333;
         }
+
         .header .left a {
             color: #00ff00;
             font-size: 18px;
             text-decoration: none;
         }
+
         .header .right {
             color: #00ff00;
             font-size: 18px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             background-color: #000;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #00ff00;
             padding: 10px;
             text-align: left;
         }
+
         th {
             background-color: #004400;
             color: #00ff00;
         }
+
         tr:nth-child(even) {
             background-color: #1a1a1a;
         }
+
         tr:hover {
             background-color: #333;
             transition: background-color 0.3s ease;
         }
+
         a {
-            color: #00ff00; /* Change link color to green */
+            color: #00ff00;
             text-decoration: none;
         }
+
         a:hover {
             text-decoration: underline;
         }
+
         .payload {
             color: #e67e22;
             font-weight: bold;
         }
+
         .request-url {
             color: #00ff00;
             word-break: break-all;
         }
+
         .container {
             margin-top: 10px;
         }
+
         .list-group-item {
             background-color: #333;
             color: #fff;
         }
+
         #urlInput {
             width: 1000px;
         }
     </style>
 </head>
+
 <body>
     <div class="container p-0">
         <h1 class="text-center">XSS Fuzzer</h1>
         <h6 align="center">Created by <a href="https://github.com/0xlipon" target="_blank">@0xlipon</a></h6>
         <form id="xssForm" class="form-inline">
             <div class="form-group">
-                <input type="url" class="form-control" id="urlInput" placeholder="http://testphp.vulnweb.com/search.php?test=" required>
+                <input type="url" class="form-control" id="urlInput"
+                    placeholder="http://testphp.vulnweb.com/search.php?test=" required>
+                <input type="text" class="form-control ml-2" id="targetInput" placeholder="Target Domain" required> <!-- Added target input -->
             </div>
-            <button type="button" class="btn btn-primary" id="scanButton" onclick="scannow()">Scan</button>
+            <button type="button" class="btn btn-primary ml-2" id="scanButton" onclick="generateDorks()">Generate Dorks</button>
         </form>
-        <div id="urlListlist"></div>
+        <div id="dorkList"></div> <!-- Added dorkList div -->
     </div>
     <script>
         const dorkContainer = document.querySelector('#dorkList');
@@ -131,7 +153,7 @@
 
         function generateDorks() {
             const baseUrl = 'https://www.google.com/search?q=';
-            const target = document.querySelector('#targetInput').value;
+            const target = document.querySelector('#targetInput').value; // Corrected the querySelector ID
             const dorkUrl = 'https://raw.githubusercontent.com/snowden-pc/XSS-Payloads/main/xss.txt';
 
             fetch(dorkUrl)
@@ -172,4 +194,5 @@
         }
     </script>
 </body>
+
 </html>
