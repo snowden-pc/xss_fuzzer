@@ -88,7 +88,7 @@
         <h1 class="text-center">XSS Fuzzer</h1>
         <form id="xssForm" class="form-inline">
             <div class="form-group">
-                <input type="url" class="form-control" id="urlInput" placeholder="http://testphp.vulnweb.com/search.php?test=" required>
+                <input type="url" class="form-control" id="urlInput" placeholder="http://testphp.vulnweb.com/search.php?test=FUZZ" required>
             </div>
             <button type="button" class="btn btn-primary" id="scanButton" onclick="scannow()">Scan</button>
         </form>
@@ -143,7 +143,14 @@
                 urls = [];
                 currentIndex = 0;
                 lines.forEach(line => {
-                    const result = `${scanbtn}${line}`;
+                    let result;
+                    if (scanbtn.includes('FUZZ')) {
+                        // Replace all instances of 'FUZZ' with the payloads
+                        result = scanbtn.replace(/FUZZ/g, line);
+                    } else {
+                        // If no FUZZ, append the payload at the end of the URL
+                        result = `${scanbtn}${line}`;
+                    }
                     const listItem = document.createElement('p');
                     const link = document.createElement('a');
                     link.href = result;
